@@ -1,0 +1,26 @@
+{
+  "tweets": [
+    {
+      "id": "1920097566705729862",
+      "content": [
+        "Vector databases supercharge AI by enabling semantic search! Instead of keyword matching, they find similar concepts based on vector embeddings. This means LLMs like Claude can retrieve the most relevant context for more accurate & nuanced responses. #VectorDatabase #AI #LLM"
+      ],
+      "topic": "Vector databases",
+      "date": "2025-05-07T12:44:40.559Z",
+      "threadIds": [
+        "1920097566705729862"
+      ]
+    },
+    {
+      "id": "1920343720282493365",
+      "content": [
+        "🤖 AI Ethics Tip:\n\n• Prioritize diverse datasets! 📊 Skewed data leads to biased AI.\n• Regularly audit your models for fairness. ✨ Crucial for responsible AI!\n\nBuild ethical AI, build better AI.\n\n#AIEthics #ResponsibleAI #MachineLearning"
+      ],
+      "topic": "AI ethics",
+      "date": "2025-05-08T05:02:46.791Z",
+      "threadIds": [
+        "1920343720282493365"
+      ]
+    }
+  ]
+}

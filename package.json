@@ -1,0 +1,35 @@
+{
+  "name": "ai-tech-tweet-bot",
+  "version": "1.0.0",
+  "description": "AI-powered Twitter bot that posts daily tweets about AI, ML, LLMs, and LangChain",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "tweet": "node cli.js tweet",
+    "metrics": "node cli.js metrics",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "twitter",
+    "bot",
+    "ai",
+    "ml",
+    "llm",
+    "langchain"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1",
+    "twitter-api-v2": "^1.15.2",
+    "node-cron": "^3.0.3",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "commander": "^11.1.0",
+    "limiter": "^2.1.0",
+    "async-retry": "^1.3.3",
+    "sharp": "^0.33.2"
+  }
+}
