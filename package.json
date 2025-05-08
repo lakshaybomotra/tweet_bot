@@ -4,10 +4,7 @@
   "description": "AI-powered Twitter bot that posts daily tweets about AI, ML, LLMs, and LangChain",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "tweet": "node cli.js tweet",
-    "metrics": "node cli.js metrics",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "keywords": [
     "twitter",
