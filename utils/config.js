@@ -3,7 +3,7 @@
  */
 const config = {
   // Scheduler configuration
-  tweetInterval: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
+  tweetInterval: 3 * 60 * 60 * 1000, // 3 hours in milliseconds
   tweetsPerDay: 10, // Number of tweets to post per day
   
   // Tweet generation configuration
