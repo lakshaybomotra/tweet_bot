@@ -3,7 +3,8 @@
  */
 const config = {
   // Scheduler configuration
-  schedulerTime: '0 9 * * *', // Run at 9 AM daily
+  tweetInterval: 2 * 60 * 60 * 1000, // 2 hours in milliseconds
+  tweetsPerDay: 10, // Number of tweets to post per day
   
   // Tweet generation configuration
   maxTweetLength: 280,

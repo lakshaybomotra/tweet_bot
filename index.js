@@ -1,10 +1,9 @@
 // AI Tech Tweet Bot - Main entry point
 require('dotenv').config();
 const express = require('express');
-const cron = require('node-cron');
 const chalk = require('chalk');
 const { generateAndPostTweet } = require('./services/botService');
-const { schedulerTime } = require('./utils/config');
+const { tweetInterval, tweetsPerDay } = require('./utils/config');
 const { router: statusRouter, updateBotStatus } = require('./routes/status');
 
 const app = express();
@@ -13,56 +12,97 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 
-// Routes
-app.use('/api', statusRouter);
+// Mount status routes
+app.use('/api', statusRouter);  // This will make status available at /api/status and health at /api/health
 
-// Start Express server
-app.listen(PORT, () => {
-    console.log(chalk.cyan.bold(`🌐 Status server running on port ${PORT}`));
-});
+// Track daily tweet count
+let dailyTweetCount = 0;
+let lastResetDate = new Date().toDateString();
 
-console.log(chalk.cyan.bold('🤖 AI Tech Tweet Bot is starting up...'));
-console.log(chalk.yellow(`⏰ Scheduled to run at: ${process.env.TWEET_TIME || schedulerTime}`));
+// Function to reset daily tweet count if it's a new day
+const resetDailyCount = () => {
+  const currentDate = new Date().toDateString();
+  if (currentDate !== lastResetDate) {
+    dailyTweetCount = 0;
+    lastResetDate = currentDate;
+    console.log(chalk.cyan('🔄 Reset daily tweet count'));
+  }
+};
 
-// Schedule the cron job to run at the configured time
-cron.schedule(process.env.TWEET_TIME || schedulerTime, async () => {
-    console.log(chalk.green(`🚀 Running scheduled tweet job at ${new Date().toLocaleString()}`));
+// Function to post a tweet
+const postTweet = async () => {
+  try {
+    resetDailyCount();
+    
+    if (dailyTweetCount >= tweetsPerDay) {
+      console.log(chalk.yellow('📊 Daily tweet limit reached. Waiting for next day...'));
+      return;
+    }
+    
+    console.log(chalk.green(`🚀 Posting tweet #${dailyTweetCount + 1} of ${tweetsPerDay}`));
     updateBotStatus({ isRunning: true });
     
-    try {
-        await generateAndPostTweet();
-        console.log(chalk.green('✅ Scheduled tweet successfully completed'));
-        updateBotStatus({
-            lastRun: new Date().toISOString(),
-            isRunning: false,
-            lastError: null
-        });
-    } catch (error) {
-        console.error(chalk.red('❌ Error in scheduled tweet:'), error.message);
-        updateBotStatus({
-            lastError: error.message,
-            isRunning: false
-        });
-    }
-});
+    await generateAndPostTweet();
+    dailyTweetCount++;
+    
+    console.log(chalk.green(`✅ Tweet #${dailyTweetCount} successfully posted`));
+    updateBotStatus({
+      lastRun: new Date().toISOString(),
+      isRunning: false,
+      lastError: null,
+      tweetsToday: dailyTweetCount,
+      tweetsRemaining: tweetsPerDay - dailyTweetCount
+    });
+  } catch (error) {
+    console.error(chalk.red('❌ Error posting tweet:'), error.message);
+    updateBotStatus({
+      lastError: error.message,
+      isRunning: false
+    });
+  }
+};
+
+// Start the tweet posting interval
+console.log(chalk.yellow(`⏰ Will post ${tweetsPerDay} tweets per day with ${tweetInterval / (60 * 60 * 1000)} hour intervals`));
+
+// Post first tweet immediately
+postTweet();
+
+// Set up interval for subsequent tweets
+const tweetTimer = setInterval(postTweet, tweetInterval);
 
 // Update next scheduled run time
 const updateNextRunTime = () => {
+  try {
     const now = new Date();
-    const [hours, minutes] = (process.env.TWEET_TIME || schedulerTime).split(':');
-    const nextRun = new Date(now);
-    nextRun.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    const nextRun = new Date(now.getTime() + tweetInterval);
     
-    if (nextRun < now) {
-        nextRun.setDate(nextRun.getDate() + 1);
-    }
-    
-    updateBotStatus({ nextScheduledRun: nextRun.toISOString() });
+    updateBotStatus({ 
+      nextScheduledRun: nextRun.toISOString(),
+      tweetsToday: dailyTweetCount,
+      tweetsRemaining: tweetsPerDay - dailyTweetCount
+    });
+  } catch (error) {
+    console.error(chalk.red('❌ Error updating next run time:'), error.message);
+    updateBotStatus({ 
+      nextScheduledRun: null,
+      lastError: `Failed to calculate next run time: ${error.message}`
+    });
+  }
 };
 
+// Initial update of next run time
 updateNextRunTime();
 
-console.log(chalk.cyan('📋 Use the CLI to manage the bot manually:'));
-console.log(chalk.white('  - Run "npm run tweet" to generate and post a tweet immediately'));
-console.log(chalk.white('  - Run "npm run metrics" to view engagement metrics'));
-console.log(chalk.cyan.dim('Bot is running in the background. Keep this process running to enable scheduled tweets.'));
+// Update next run time after each interval
+setInterval(updateNextRunTime, tweetInterval);
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(chalk.green(`\n🤖 AI Tech Tweet Bot is running!`));
+  console.log(chalk.white('  - Server listening on port'), chalk.cyan(PORT));
+  console.log(chalk.white('  - Status endpoint:'), chalk.cyan(`http://localhost:${PORT}/api/status`));
+  console.log(chalk.white('  - Health endpoint:'), chalk.cyan(`http://localhost:${PORT}/api/health`));
+  console.log(chalk.white('  - Run "npm run tweet" to generate and post a tweet immediately'));
+  console.log(chalk.cyan.dim('Bot is running in the background. Keep this process running to enable scheduled tweets.'));
+});
